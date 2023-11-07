@@ -1,0 +1,267 @@
+
+
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>A=B</title>
+    <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+    <div class="code">
+        <textarea id="code" class="max bigfont">ba=ab
+ca=ac
+cb=bc</textarea>
+    </div>
+    <div class="output">
+        <textarea readonly id="output" class="max bigfont"></textarea>
+    </div>
+    <div class="input">
+        <textarea id="input" class="max bigfont">cabcba</textarea>
+    </div>
+    <div class="log">
+        <textarea readonly id="log" class="max bigfont"></textarea>
+    </div>
+    <div class="menu">
+        <button type="button" class="button bigfont" onclick="run1();">▶</button>
+        <button type="button" class="button bigfont" onclick="run2();">▶▶</button>
+        <button type="button" class="button bigfont" onclick="run3();">▶▶▶</button>
+        <button type="button" class="button bigfont" onclick="stop();">■</button>
+    </div>
+</body>
+
+<script language="javascript" type="text/javascript">
+    const _sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    function run1() {
+        canRun = true;
+        speed = 250;
+        if (!isAlwaysRunned)
+            run();
+    }
+
+    function run2() {
+        canRun = true;
+        speed = 50;
+        if (!isAlwaysRunned)
+            run();
+    }
+
+    function run3() {
+        canRun = true;
+        speed = 0;
+        if (!isAlwaysRunned)
+            run();
+    }
+
+    function stop() {
+        canRun = false;
+    }
+
+    function sleepByPromise(msec) {
+        return new Promise(resolve => setTimeout(resolve, msec));
+    }
+
+    var speed = 500;
+    var isAlwaysRunned = false;
+    var canRun = true;
+
+    async function run() {
+        isAlwaysRunned = true;
+
+        var code = document.getElementById("code");
+        var output = document.getElementById("output");
+        var input = document.getElementById("input");
+        var log = document.getElementById("log");
+
+        var codeValue = code.value.split(/\n/);
+        var codeIsOnce = [];
+        var codeIsOnceEnd = [];
+        var codeIsStart1 = [];
+        var codeIsEnd1 = [];
+        var codeIsStart2 = [];
+        var codeIsEnd2 = [];
+        var codeIsReturn = [];
+        var noSyntaxError = true;
+
+        codeValue.forEach(element => {
+            var includeEquals = false;
+            var isStart = true;
+            var before = false;
+            var isOnce = false;
+            var isStart1 = false;
+            var isStart2 = false;
+            var isEnd1 = false;
+            var isEnd2 = false;
+            var isReturn = false;
+            for (var i = 0; i < element.length && canRun; ++i) {
+                if (!isStart && element[i] == "(") {
+                    noSyntaxError = false;
+                }
+                if (before) {
+                    if (element[i] == "o")
+                        if (i == 1)
+                            isOnce = true;
+                        else
+                            noSyntaxError = false
+                    if (element[i] == "s") {
+                        if (i == 1)
+                            isStart1 = true;
+                        else
+                            isStart2 = true;
+                    }
+                    if (element[i] == "e") {
+                        if (i == 1)
+                            isEnd1 = true;
+                        else
+                            isEnd2 = true;
+                    }
+                    if (element[i] == "r") {
+                        if (i == 1)
+                            noSyntaxError = false;
+                        else
+                            isReturn = true;
+                    }
+                    before = false;
+                }
+                if (element[i] == "(")
+                    before = true;
+                isStart = false;
+                if (element[i] == "=") {
+                    includeEquals = true;
+                    isStart = true;
+                }
+            }
+            codeIsOnce.splice(codeIsOnce.length, 0, isOnce);
+            codeIsStart1.splice(codeIsStart1.length, 0, isStart1);
+            codeIsStart2.splice(codeIsStart2.length, 0, isStart2);
+            codeIsEnd1.splice(codeIsEnd1.length, 0, isEnd1);
+            codeIsEnd2.splice(codeIsEnd2.length, 0, isEnd2);
+            codeIsReturn.splice(codeIsReturn.length, 0, isReturn);
+            codeIsOnceEnd.splice(codeIsOnceEnd.length, 0, false);
+            console.log(codeIsOnce);
+            console.log(codeIsStart1);
+            console.log(codeIsStart2);
+            console.log(codeIsEnd1);
+            console.log(codeIsEnd2);
+            console.log(codeIsReturn);
+            if (!includeEquals)
+                noSyntaxError = false;
+        });
+
+        if (!noSyntaxError) {
+            log.value = "syntax error";
+        } else {
+            var NO = 0;
+            var isMatch = -1;
+            var outputString = "";
+            var table = input.value.split("");
+            var encientTable = input.value;
+            var logValue = "";
+            for (var i = 0; i < codeValue.length && canRun; ++i) {
+                if (!codeIsOnceEnd[i]) {
+                    var codeSelected = codeValue[i].split("=");
+                    var startPoint = 0;
+                    if (codeIsOnce[i])
+                        startPoint = 6;
+                    if (codeIsStart1[i])
+                        startPoint = 7;
+                    if (codeIsEnd1[i])
+                        startPoint = 5;
+                    isMatch = -2;
+                    for (var j = 0; j < table.length; ++j) {
+                        isMatch = -1;
+                        // console.log(codeSelected[0][startPoint], table[j], startPoint, codeSelected[0].length);
+                        if (codeSelected[0][startPoint] == table[j]) {
+                            isMatch = j;
+                            if (codeIsStart1[i] && j != 0) {
+                                isMatch = -1;
+                                break;
+                            }
+                            for (var k = 0; k < codeSelected[0].length - startPoint; k++) {
+                                if (j + k >= table.length) {
+                                    isMatch = -1;
+                                } else {
+                                    if (codeSelected[0][startPoint + k] != table[j + k])
+                                        isMatch = -1;
+                                    else if (codeIsEnd1[i] && k == codeSelected[0].length - startPoint - 1 && j + k != table.length - 1)
+                                        isMatch = -1;
+                                }
+                            }
+                        }
+                        if (codeSelected[0].length - startPoint == 0)
+                            isMatch = 0;
+                        if (isMatch >= 0)
+                            break;
+                    }
+                    // console.log(isMatch);
+                    if (isMatch == -2) {
+                        isMatch = 0;
+                    }
+                    if (isMatch >= 0) {
+                        await sleepByPromise(speed);
+                        var startPoint = 0;
+                        if (codeIsOnce[i]) {
+                            codeIsOnceEnd[i] = true;
+                            startPoint = 6;
+                        }
+                        if (codeIsStart1[i])
+                            startPoint = 7;
+                        if (codeIsEnd1[i])
+                            startPoint = 5;
+                        // console.log("Matched", i, isMatch, codeSelected[0].length, startPoint);
+                        table.splice(isMatch, codeSelected[0].length - startPoint);
+                        if (codeIsStart2[i]) {
+                            for (var j = codeSelected[1].length - 1; j >= 7; --j) {
+                                table.splice(0, 0, codeSelected[1][j]);
+                            }
+                        } else if (codeIsEnd2[i]) {
+                            for (var j = 5; j < codeSelected[1].length; ++j) {
+                                table.splice(table.length, 0, codeSelected[1][j]);
+                            }
+                        } else if (codeIsReturn[i]) {
+                            table.splice(0, table.length);
+                            for (var j = 8; j < codeSelected[1].length; ++j) {
+                                table.splice(table.length, 0, codeSelected[1][j]);
+                            }
+                            outputString = input.value + "\n";
+                            logValue += "\n" + encientTable;
+                            encientTable = "";
+                            table.forEach(element => {
+                                outputString += element;
+                                encientTable += element;
+                            });
+                            logValue += "\n" + codeSelected[0] + "=" + codeSelected[1] + "\n" + encientTable + "\n";
+                            log.value = logValue;
+                            log.scrollTop = log.scrollHeight;
+                            output.value = outputString;
+                            break;
+                        } else {
+                            for (var j = codeSelected[1].length - 1; j >= 0; --j) {
+                                table.splice(isMatch, 0, codeSelected[1][j]);
+                            }
+                        }
+                        i = -1;
+
+                        outputString = input.value + "\n";
+                        logValue += "\n" + encientTable;
+                        encientTable = "";
+                        table.forEach(element => {
+                            outputString += element;
+                            encientTable += element;
+                        });
+                        logValue += "\n" + codeSelected[0] + "=" + codeSelected[1] + "\n" + encientTable + "\n";
+                        log.value = logValue;
+                        log.scrollTop = log.scrollHeight;
+                        output.value = outputString;
+                    }
+                    // await sleepByPromise(speed);
+                }
+            }
+        }
+        isAlwaysRunned = false;
+    }
+</script>
+
+</html>
